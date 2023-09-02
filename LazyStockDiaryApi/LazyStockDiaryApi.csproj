@@ -28,6 +28,7 @@
     <None Remove="Extentions\" />
     <None Remove="Helpers\" />
     <None Remove=".gitignore" />
+    <None Remove="HostedServices\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />
@@ -35,6 +36,7 @@
     <Folder Include="Extentions\" />
     <Folder Include="Models\" />
     <Folder Include="Helpers\" />
+    <Folder Include="HostedServices\" />
   </ItemGroup>
   <ItemGroup>
     <Content Remove="appsettings.Development.json" />
