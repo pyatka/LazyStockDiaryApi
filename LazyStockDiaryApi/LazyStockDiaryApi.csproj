@@ -27,6 +27,7 @@
     <None Remove="Services\" />
     <None Remove="Extentions\" />
     <None Remove="Helpers\" />
+    <None Remove=".gitignore" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\" />

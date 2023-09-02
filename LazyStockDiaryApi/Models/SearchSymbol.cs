@@ -17,5 +17,7 @@ namespace LazyStockDiaryApi.Models
         public string? ISIN { get; set; }
         public double? PreviousClose { get; set; }
         public DateTime? PreviousCloseDate { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public DateTime UpdateDate { get; set; }
     }
 }

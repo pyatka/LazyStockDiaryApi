@@ -54,6 +54,10 @@ namespace LazyStockDiaryApi.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<DateTime>("UpdateDate")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("datetime(6)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Code");
