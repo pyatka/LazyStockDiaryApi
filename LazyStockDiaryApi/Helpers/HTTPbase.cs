@@ -21,15 +21,15 @@ public class HTTPbase
 	public HTTPbase()
 	{
 		client = new HttpClient();
-            client.DefaultRequestHeaders.Accept.Clear();
-        }
+        client.DefaultRequestHeaders.Accept.Clear();
+    }
 
 	public async Task<T> Get<T>(Uri uri, Dictionary<string, string>? parameters = null)
 	{
 		string url = prepareGetUrl(uri, parameters);
 		var jsonText = await client.GetStringAsync(url);
 		var o = JsonConvert.DeserializeObject<T>(jsonText);
-            return o;
-        }
+        return o;
+    }
 }
 

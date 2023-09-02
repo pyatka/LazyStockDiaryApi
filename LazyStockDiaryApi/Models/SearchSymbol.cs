@@ -19,5 +19,19 @@ namespace LazyStockDiaryApi.Models
         public DateTime? PreviousCloseDate { get; set; }
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime UpdateDate { get; set; }
+
+        public Symbol ToSymbol()
+        {
+            var s = new Symbol();
+            s.Code = Code;
+            s.Exchange = Exchange;
+            s.Type = Type;
+            s.Country = Country;
+            s.Currency = Currency;
+            s.ISIN = ISIN;
+            s.Close = PreviousClose;
+            s.PreviousCloseDate = PreviousCloseDate;
+            return s;
+        }
     }
 }

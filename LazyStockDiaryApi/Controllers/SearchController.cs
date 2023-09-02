@@ -11,7 +11,7 @@ namespace LazyStockDiaryApi.Controllers;
 public class SearchController : ControllerBase
 {
     [HttpGet]
-    public async Task<SearchSymbol> Search(string query,
+    public async Task<List<SearchSymbol>> Search(string query,
                                             IOptions<ApiSettings> settings,
                                             IConfiguration configuration)
     {
@@ -21,7 +21,7 @@ public class SearchController : ControllerBase
             var result = context.SearchSymbol.Where(s => s.Code.ToLower() == query);
             if(result.Count<SearchSymbol>() > 0)
             {
-                return result.FirstOrDefault();
+                return result.ToList<SearchSymbol>();
             } else
             {
                 var eodhd = new EodhdService(settings.Value.EodhdApiKey);

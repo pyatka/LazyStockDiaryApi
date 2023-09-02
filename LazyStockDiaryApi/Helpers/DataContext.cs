@@ -20,6 +20,9 @@ namespace LazyStockDiaryApi.Helpers
         }
 
         public DbSet<SearchSymbol> SearchSymbol { get; set; }
+        public DbSet<HistoricalEod> HistoricalEod { get; set; }
+        public DbSet<Symbol> Symbol { get; set; }
+        public DbSet<Dividend> Dividend { get; set; }
     }
 }
 

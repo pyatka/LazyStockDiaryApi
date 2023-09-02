@@ -1,6 +1,7 @@
 ﻿using System;
 using LazyStockDiaryApi.Models;
 using LazyStockDiaryApi.Helpers;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace LazyStockDiaryApi.Services
 {
@@ -18,7 +19,8 @@ namespace LazyStockDiaryApi.Services
 			}
 			var parameters = keyValues;
 			parameters.Add("api_token", apiKey);
-			return parameters;
+            parameters.Add("fmt", "json");
+            return parameters;
 		}
 
 		public EodhdService(string apiKey)
@@ -34,6 +36,25 @@ namespace LazyStockDiaryApi.Services
 			var symbols = await httpClient.Get<List<SearchSymbol>>(uri, prepareParameters());
 			return symbols;
 		}
-	}
+
+		public async void GetSymbolDetails(string code, string exchange)
+		{
+            var uri = baseUri.Append("eod", string.Format("{0}.{1}", code.ToUpper(), exchange.ToUpper()));
+        }
+
+		public async Task<List<HistoricalEod>> GetSymbolEodHistoryData(string code, string exchange)
+		{
+            var uri = baseUri.Append("eod", string.Format("{0}.{1}", code.ToUpper(), exchange.ToUpper()));
+			List<HistoricalEod> historicalEods = await httpClient.Get<List<HistoricalEod>>(uri, prepareParameters());
+			return historicalEods;
+        }
+
+        public async Task<List<Dividend>> GetSymbolDividendData(string code, string exchange)
+        {
+            var uri = baseUri.Append("div", string.Format("{0}.{1}", code.ToUpper(), exchange.ToUpper()));
+            List<Dividend> dividends = await httpClient.Get<List<Dividend>>(uri, prepareParameters());
+            return dividends;
+        }
+    }
 }
 
