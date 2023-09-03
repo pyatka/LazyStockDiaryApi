@@ -24,6 +24,9 @@ namespace LazyStockDiaryApi.Models
         public double? Low { get; set; }
         public int? Volume { get; set; }
 
+        public DateTime? DividendLastUpdate { get; set; }
+        public DateTime? EodLastUpdate { get; set; }
+
         public void UpdateWithEod(HistoricalEod data)
         {
             PreviousCloseDate = data.Date;

@@ -23,6 +23,7 @@ namespace LazyStockDiaryApi.Helpers
         public DbSet<HistoricalEod> HistoricalEod { get; set; }
         public DbSet<Symbol> Symbol { get; set; }
         public DbSet<Dividend> Dividend { get; set; }
+        public DbSet<Exchange> Exchange { get; set; }
     }
 }
 

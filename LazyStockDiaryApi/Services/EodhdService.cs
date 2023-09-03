@@ -37,9 +37,11 @@ namespace LazyStockDiaryApi.Services
 			return symbols;
 		}
 
-		public async void GetSymbolDetails(string code, string exchange)
+		public async Task<ExchangeEodhd> GetExchangeDetails(string exchange)
 		{
-            var uri = baseUri.Append("eod", string.Format("{0}.{1}", code.ToUpper(), exchange.ToUpper()));
+            var uri = baseUri.Append("exchange-details", exchange.ToUpper());
+			ExchangeEodhd exchangeEodhd = await httpClient.Get<ExchangeEodhd>(uri, prepareParameters());
+			return exchangeEodhd;
         }
 
 		public async Task<List<HistoricalEod>> GetSymbolEodHistoryData(string code, string exchange)
