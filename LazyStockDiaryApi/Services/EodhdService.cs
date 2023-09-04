@@ -2,6 +2,7 @@
 using LazyStockDiaryApi.Models;
 using LazyStockDiaryApi.Helpers;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using LazyStockDiaryApi.Migrations;
 
 namespace LazyStockDiaryApi.Services
 {
@@ -56,6 +57,16 @@ namespace LazyStockDiaryApi.Services
             var uri = baseUri.Append("div", string.Format("{0}.{1}", code.ToUpper(), exchange.ToUpper()));
             List<Dividend> dividends = await httpClient.Get<List<Dividend>>(uri, prepareParameters());
             return dividends;
+        }
+
+		public async Task<List<HistoricalEodEodhd>> GetBulkEod(string[] codes)
+		{
+            var uri = baseUri.Append("eod-bulk-last-day", "US");
+			List<HistoricalEodEodhd> eods = await httpClient.Get<List<HistoricalEodEodhd>>(uri, prepareParameters(new Dictionary<string, string>
+			{
+				{ "symbols", String.Join(",", codes) },
+			}));
+            return eods;
         }
     }
 }

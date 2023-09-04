@@ -9,7 +9,7 @@ namespace LazyStockDiaryApi.HostedServices
     {
         private readonly ILogger<SymbolCacheCleaner> _logger;
         private readonly DataContext _context;
-        private int _checkTimeout = 1000 * 60 * 60 * 2;
+        private int _checkTimeout = 1000 * 60 * 60 * 2; // 2 hours
 
         private DateTime expiredDate
         {

@@ -24,6 +24,8 @@ namespace LazyStockDiaryApi.Models
         public double? Low { get; set; }
         public int? Volume { get; set; }
 
+        //public double PreviousClose { get; set; }
+
         public DateTime? DividendLastUpdate { get; set; }
         public DateTime? EodLastUpdate { get; set; }
 
@@ -36,6 +38,11 @@ namespace LazyStockDiaryApi.Models
             Low = data.Low;
             Volume = data.Volume;
         }
-	}
+
+        public override string ToString()
+        {
+            return string.Format("{0}.{1}", Code, Exchange);
+        }
+    }
 }
 

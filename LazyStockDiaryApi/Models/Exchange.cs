@@ -4,6 +4,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LazyStockDiaryApi.Models
 {
+    public enum ExchangeStatus
+    {
+        Pre = 0,
+        Open = 1,
+        Post = 2,
+        ClosedToday = 3,
+    }
+
     [Index(nameof(Code))]
     public class Exchange
 	{
@@ -20,6 +28,46 @@ namespace LazyStockDiaryApi.Models
         public DateTime OpenUTC { get; set; }
         public DateTime CloseUTC { get; set; }
         public string? WorkingDays { get; set; }
+
+        public double GetPostStateSeconds(TimeSpan compareTime)
+        {
+            return (compareTime - CloseUTC.TimeOfDay).TotalSeconds;
+        }
+
+        public ExchangeStatus GetExchangeStatus()
+        {
+            var now = DateTime.Now.ToUniversalTime();
+            if(WorkingDays != null)
+            {
+                string[] workingDays = WorkingDays.Split(",");
+                int[] workingDaysIndexes = new int[workingDays.Length];
+                for(int i = 0; i < workingDays.Length; i++)
+                {
+                    workingDaysIndexes[i] = Array.IndexOf(eodhdDays, workingDays[i]);
+                }
+
+                if (!workingDaysIndexes.Contains((int)now.DayOfWeek))
+                {
+                    return ExchangeStatus.ClosedToday;
+                }
+            }
+
+            DateTime closeWithDelta = CloseUTC.AddMinutes(30);
+            if (now.TimeOfDay <= OpenUTC.TimeOfDay)
+            {
+                return ExchangeStatus.Pre;
+            }
+            else if (now.TimeOfDay > OpenUTC.TimeOfDay && now.TimeOfDay <= CloseUTC.TimeOfDay)
+            {
+                return ExchangeStatus.Open;
+            }
+            else
+            {
+                return ExchangeStatus.Post;
+            }
+        }
+
+        private string[] eodhdDays = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
     }
 }
 

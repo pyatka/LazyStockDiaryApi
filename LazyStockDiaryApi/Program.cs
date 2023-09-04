@@ -9,6 +9,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("ApiSettings"));
 builder.Services.AddDbContext<DataContext>();
 builder.Services.AddHostedService<SymbolCacheCleaner>();
+builder.Services.AddHostedService<SymbolUpdater>();
 
 var app = builder.Build();
 
