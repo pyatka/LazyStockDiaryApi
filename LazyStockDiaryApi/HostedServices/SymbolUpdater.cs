@@ -32,7 +32,7 @@ namespace LazyStockDiaryApi.HostedServices
                 var takeCount = Math.Ceiling((decimal)_symbolsToUpdate.Count / (decimal)30);
                 for(var i = 0; i < takeCount; i++)
                 {
-                    var eods = await eodhd.GetBulkEod(_symbolsToUpdate.Take(30).ToArray<Symbol>().Select(s => s.ToString()).ToArray<string>());
+                    var eods = await eodhd.GetBulkEod(_symbolsToUpdate.Skip(i * 30).Take(30).ToArray<Symbol>().Select(s => s.ToString()).ToArray<string>());
                     updateData = updateData.Concat(eods).ToList<HistoricalEodEodhd>();
                 }
             }
@@ -47,43 +47,56 @@ namespace LazyStockDiaryApi.HostedServices
         private readonly IOptions<ApiSettings> _settings;
         private int _checkTimeout = 1000 * 60 * 10; //10 minutes
 
+        private Dictionary<string, Exchange> _exchanges;
+
         public SymbolUpdater(ILogger<SymbolCacheCleaner> logger, IServiceScopeFactory factory, IOptions<ApiSettings> settings)
         {
             _logger = logger;
             _context = factory.CreateScope().ServiceProvider.GetRequiredService<DataContext>();
             _settings = settings;
+            _exchanges = new Dictionary<string, Exchange>();
         }
 
         protected async override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                EodhdUpdateManager eodhdUpdateManager = new EodhdUpdateManager(_settings);
-                Exchange[] exchanges = _context.Exchange.ToArray();
-                DateTime nowDateTime = DateTime.Now;
-                foreach (Exchange e in exchanges)
+                _exchanges.Clear();
+                _exchanges = new Dictionary<string, Exchange>();
+                foreach (Exchange e in _context.Exchange.ToArray())
                 {
-                    // Check if it's postmarket state
-                    if(true || e.GetExchangeStatus() == ExchangeStatus.Post)
-                    {
-                        var secondsPostMarket = e.GetPostStateSeconds(nowDateTime.TimeOfDay);
+                    _exchanges.Add(e.Code, e);
+                }
 
-                        // Wait for postmarket data to receive in EodHd (30 min)
-                        if(true || secondsPostMarket > 60 * 30)
+                EodhdUpdateManager eodhdUpdateManager = new EodhdUpdateManager(_settings);
+                DateTime nowDateTime = DateTime.Now;
+
+                foreach(Symbol symbol in _context.Symbol.ToArray())
+                {
+                    ExchangeStatus exchangeStatus = _exchanges[symbol.Exchange].GetExchangeStatus();
+                    ExchangeStatus exchangeYesterdayStatus = _exchanges[symbol.Exchange].GetExchangeStatus(nowDateTime.AddDays(-1));
+                    double daysFromLastUpdate = (nowDateTime - ((DateTime)symbol.EodLastUpdate)).TotalDays;
+
+                    // For unupdated symbols
+                    if (daysFromLastUpdate > 1 && exchangeYesterdayStatus != ExchangeStatus.ClosedToday)
+                    {
+                        eodhdUpdateManager.PutSymbol(symbol);
+                    } else 
+                    // For daily postmarket updates
+                    if (exchangeStatus == ExchangeStatus.Post)
+                    {
+                        if(symbol.EodLastUpdate != null)
                         {
-                            var exchangeSymbols = _context.Symbol.Where(s => s.Exchange == e.Code).ToArray();
-                            foreach(Symbol s in exchangeSymbols)
+                            var relativeMarketCloseSecondsLastUpdate = _exchanges[symbol.Exchange].GetRelativeMarketCloseSeconds((DateTime)symbol.EodLastUpdate);
+                            var relativeMarketCloseSeconds = _exchanges[symbol.Exchange].GetRelativeMarketCloseSeconds(nowDateTime);
+
+                            // More than half hour post market
+                            if (relativeMarketCloseSeconds > 60 * 30)
                             {
-                                if(s.EodLastUpdate != null)
+                                // Didn't update today postmarket
+                                if(relativeMarketCloseSecondsLastUpdate < 0)
                                 {
-                                    // If last update was more than day ago
-                                    if(true || (nowDateTime - ((DateTime)s.EodLastUpdate)).TotalDays > 0)
-                                    {
-                                        eodhdUpdateManager.PutSymbol(s);
-                                    }
-                                } else
-                                {
-                                    eodhdUpdateManager.PutSymbol(s);
+                                    eodhdUpdateManager.PutSymbol(symbol);
                                 }
                             }
                         }
@@ -91,6 +104,30 @@ namespace LazyStockDiaryApi.HostedServices
                 }
 
                 List<HistoricalEodEodhd> updateData = await eodhdUpdateManager.Update();
+
+                // Save to database
+                foreach (HistoricalEodEodhd data in updateData)
+                {
+                    var symbolToUpdate = _context.Symbol.Where(s => s.Code == data.Code && s.Exchange == data.Exchange).FirstOrDefault();
+                    if (symbolToUpdate != null)
+                    {
+                        symbolToUpdate.UpdateEod(data);
+                        symbolToUpdate.EodLastUpdate = nowDateTime;
+                        _context.Symbol.Update(symbolToUpdate);
+
+                        HistoricalEod newHistoricalEod = data.ToHistoricalEod();
+                        var historicalDataExists = _context.HistoricalEod.Any(e => e.Date == newHistoricalEod.Date
+                                                                                    && e.Code == newHistoricalEod.Code
+                                                                                    && e.Exchange == newHistoricalEod.Exchange);
+                        // Prevent double historical data
+                        if (!historicalDataExists)
+                        {
+                            _context.HistoricalEod.Add(newHistoricalEod);
+                        }
+
+                        _context.SaveChanges();
+                    }
+                }
 
                 await Task.Delay(_checkTimeout);
             }

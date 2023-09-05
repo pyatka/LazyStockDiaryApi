@@ -29,14 +29,22 @@ namespace LazyStockDiaryApi.Models
         public DateTime CloseUTC { get; set; }
         public string? WorkingDays { get; set; }
 
-        public double GetPostStateSeconds(TimeSpan compareTime)
-        {
-            return (compareTime - CloseUTC.TimeOfDay).TotalSeconds;
-        }
-
-        public ExchangeStatus GetExchangeStatus()
+        public double GetRelativeMarketCloseSeconds(DateTime date)
         {
             var now = DateTime.Now.ToUniversalTime();
+            var closeWithDate = new DateTime(now.Year, now.Month, now.Day, CloseUTC.Hour, CloseUTC.Minute, CloseUTC.Second);
+            return (date - closeWithDate).TotalSeconds;
+        }
+
+        public ExchangeStatus GetExchangeStatus(DateTime? date = null)
+        {
+            var now = DateTime.Now.ToUniversalTime();
+
+            if(date != null)
+            {
+                now = ((DateTime)date).ToUniversalTime();
+            }
+
             if(WorkingDays != null)
             {
                 string[] workingDays = WorkingDays.Split(",");

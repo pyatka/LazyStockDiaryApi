@@ -24,7 +24,10 @@ namespace LazyStockDiaryApi.Models
         public double? Low { get; set; }
         public int? Volume { get; set; }
 
-        //public double PreviousClose { get; set; }
+        public double? PreviousClose { get; set; }
+
+        public double? ChangeAbsolute { get; set; }
+        public double? ChangePercent { get; set; }
 
         public DateTime? DividendLastUpdate { get; set; }
         public DateTime? EodLastUpdate { get; set; }
@@ -37,6 +40,19 @@ namespace LazyStockDiaryApi.Models
             High = data.High;
             Low = data.Low;
             Volume = data.Volume;
+        }
+
+        public void UpdateEod(HistoricalEodEodhd data)
+        {
+            PreviousCloseDate = data.Date;
+            PreviousClose = data.PreviousClose;
+            Close = data.Close;
+            Open = data.Open;
+            High = data.High;
+            Low = data.Low;
+            Volume = data.Volume;
+            ChangeAbsolute = data.ChangeAbsolute;
+            ChangePercent = data.ChangePercent;
         }
 
         public override string ToString()
