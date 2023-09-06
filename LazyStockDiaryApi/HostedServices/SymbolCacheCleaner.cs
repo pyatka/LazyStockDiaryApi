@@ -15,7 +15,7 @@ namespace LazyStockDiaryApi.HostedServices
         {
             get
             {
-                return DateTime.Now.AddHours(-12);
+                return DateTime.Now.AddHours(-72);
             }
         }
 

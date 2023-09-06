@@ -19,7 +19,7 @@ namespace LazyStockDiaryApi.Helpers
             options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
         }
 
-        public DbSet<SearchSymbol> SearchSymbol { get; set; }
+        public DbSet<SearchSymbolCache> SearchSymbol { get; set; }
         public DbSet<HistoricalEod> HistoricalEod { get; set; }
         public DbSet<Symbol> Symbol { get; set; }
         public DbSet<Dividend> Dividend { get; set; }

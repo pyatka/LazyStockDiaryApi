@@ -18,7 +18,7 @@ public class SearchController : ControllerBase
         query = query.ToLower();
         using (var context = new DataContext(configuration))
         {
-            var result = context.SearchSymbol.Where(s => s.Code.ToLower() == query);
+            var result = context.SearchSymbol.Where(s => s.Query == query);
             if(result.Count<SearchSymbol>() > 0)
             {
                 return result.ToList<SearchSymbol>();
@@ -28,7 +28,8 @@ public class SearchController : ControllerBase
                 List<SearchSymbol> symbols = await eodhd.Search(query);
                 foreach (SearchSymbol s in symbols)
                 {
-                    context.SearchSymbol.Add(s);
+                    var sc = s.ToSearchSymbolCache(query);
+                    context.SearchSymbol.Add(sc);
                 }
                 context.SaveChanges();
                 return await Search(query, settings, configuration);
