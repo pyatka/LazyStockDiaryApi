@@ -35,7 +35,7 @@ namespace LazyStockDiaryApi.Controllers
         }
 
         [HttpPost]
-        public async Task<bool> RegisterSymbol([FromForm]string code,
+        public async Task<Symbol?> RegisterSymbol([FromForm]string code,
                                                [FromForm]string exchange,
                                             IOptions<ApiSettings> settings,
                                             IConfiguration configuration)
@@ -88,10 +88,15 @@ namespace LazyStockDiaryApi.Controllers
                         context.SaveChanges();
 
                         StatusCode(StatusCodes.Status201Created);
+                        return newSymbol;
+                    }
+                    else
+                    {
+                        return context.Symbol.Where(s => s.Code == code && s.Exchange == exchange).FirstOrDefault();
                     }
                 }
             }
-            return true;
+            return null;
         }
     }
 }
