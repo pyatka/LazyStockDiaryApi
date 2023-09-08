@@ -13,7 +13,7 @@ namespace LazyStockDiaryApi.Models
 
         public string Code { get; set; }
         public string Exchange { get; set; }
-        public DateTime Date { get; set; }
+        public DateTime? Date { get; set; }
 
         public double? Open { get; set; }
         public double? Close { get; set; }

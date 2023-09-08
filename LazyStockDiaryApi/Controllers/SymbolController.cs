@@ -35,49 +35,46 @@ namespace LazyStockDiaryApi.Controllers
         }
 
         [HttpPost]
-        public async Task<Symbol?> RegisterSymbol([FromForm]string code,
-                                               [FromForm]string exchange,
+        public async Task<Symbol?> RegisterSymbol([FromBody]RegisterSymbolData symbol,
                                             IOptions<ApiSettings> settings,
                                             IConfiguration configuration)
         {
-            code = code.ToUpper();
-            exchange = exchange.ToUpper();
             using (var context = new DataContext(configuration))
             {
-                var searchSymbol = context.SearchSymbol.Where(s => s.Code == code && s.Exchange == exchange);
+                var searchSymbol = context.SearchSymbol.Where(s => s.Code == symbol.Code && s.Exchange == symbol.Exchange);
                 SearchSymbol? searchSymbolData = searchSymbol.FirstOrDefault<SearchSymbol>();
-                if(searchSymbolData != null)
+                if (searchSymbolData != null)
                 {
-                    var symbolExists = context.Symbol.Any(s => s.Code == code && s.Exchange == exchange);
+                    var symbolExists = context.Symbol.Any(s => s.Code == symbol.Code && s.Exchange == symbol.Exchange);
 
                     if (!symbolExists)
                     {
                         var eodhd = new EodhdService(settings.Value.EodhdApiKey);
 
-                        var exchangeExists = context.Exchange.Any(e => e.Code == exchange);
+                        var exchangeExists = context.Exchange.Any(e => e.Code == symbol.Exchange);
                         if (!exchangeExists)
                         {
-                            ExchangeEodhd exchangeEodhd = await eodhd.GetExchangeDetails(exchange);
+                            ExchangeEodhd exchangeEodhd = await eodhd.GetExchangeDetails(symbol.Exchange);
                             context.Exchange.Add(exchangeEodhd.ToExchange());
                         }
 
-                        List<HistoricalEod> historicalEods = await eodhd.GetSymbolEodHistoryData(code, exchange);
-                        List<Dividend> dividends = await eodhd.GetSymbolDividendData(code, exchange);
+                        List<HistoricalEod> historicalEods = await eodhd.GetSymbolEodHistoryData(symbol.Code, symbol.Exchange);
+                        List<Dividend> dividends = await eodhd.GetSymbolDividendData(symbol.Code, symbol.Exchange);
 
                         Symbol newSymbol = searchSymbolData.ToSymbol();
                         newSymbol.UpdateWithEod(historicalEods.Last());
 
                         foreach (HistoricalEod eod in historicalEods)
                         {
-                            eod.Code = code;
-                            eod.Exchange = exchange;
+                            eod.Code = symbol.Code;
+                            eod.Exchange = symbol.Exchange;
                             context.HistoricalEod.Add(eod);
                         }
 
                         foreach (Dividend div in dividends)
                         {
-                            div.Code = code;
-                            div.Exchange = exchange;
+                            div.Code = symbol.Code;
+                            div.Exchange = symbol.Exchange;
                             context.Dividend.Add(div);
                         }
 
@@ -92,7 +89,7 @@ namespace LazyStockDiaryApi.Controllers
                     }
                     else
                     {
-                        return context.Symbol.Where(s => s.Code == code && s.Exchange == exchange).FirstOrDefault();
+                        return context.Symbol.Where(s => s.Code == symbol.Code && s.Exchange == symbol.Exchange).FirstOrDefault();
                     }
                 }
             }
