@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 
 namespace LazyStockDiaryApi.Models
 {
@@ -23,7 +24,7 @@ namespace LazyStockDiaryApi.Models
         public double? Close { get; set; }
         public double? High { get; set; }
         public double? Low { get; set; }
-        public int? Volume { get; set; }
+        public ulong? Volume { get; set; }
 
         public double? PreviousClose { get; set; }
 
