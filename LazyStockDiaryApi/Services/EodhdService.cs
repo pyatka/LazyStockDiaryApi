@@ -3,6 +3,7 @@ using LazyStockDiaryApi.Models;
 using LazyStockDiaryApi.Helpers;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using LazyStockDiaryApi.Migrations;
+using Microsoft.Extensions.Options;
 
 namespace LazyStockDiaryApi.Services
 {

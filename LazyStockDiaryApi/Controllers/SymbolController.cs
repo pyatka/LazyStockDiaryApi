@@ -37,59 +37,43 @@ namespace LazyStockDiaryApi.Controllers
         [HttpPost]
         public async Task<Symbol?> RegisterSymbol([FromBody]RegisterSymbolData symbol,
                                             IOptions<ApiSettings> settings,
+                                            IServiceProvider serviceProvider,
                                             IConfiguration configuration)
         {
             using (var context = new DataContext(configuration))
             {
                 var searchSymbol = context.SearchSymbol.Where(s => s.Code == symbol.Code && s.Exchange == symbol.Exchange);
                 SearchSymbol? searchSymbolData = searchSymbol.FirstOrDefault<SearchSymbol>();
+
+                /* Check if symbol was searched previously, 
+                 * elswhere it's unauthorized traffic and we can't be sure in 
+                 * Eodhd request.
+                 */
                 if (searchSymbolData != null)
                 {
                     var symbolExists = context.Symbol.Any(s => s.Code == symbol.Code && s.Exchange == symbol.Exchange);
 
-                    if (!symbolExists)
+                    if (symbolExists)
                     {
-                        var eodhd = new EodhdService(settings.Value.EodhdApiKey);
-
-                        var exchangeExists = context.Exchange.Any(e => e.Code == symbol.Exchange);
-                        if (!exchangeExists)
-                        {
-                            ExchangeEodhd exchangeEodhd = await eodhd.GetExchangeDetails(symbol.Exchange);
-                            context.Exchange.Add(exchangeEodhd.ToExchange());
-                        }
-
-                        List<HistoricalEod> historicalEods = await eodhd.GetSymbolEodHistoryData(symbol.Code, symbol.Exchange);
-                        List<Dividend> dividends = await eodhd.GetSymbolDividendData(symbol.Code, symbol.Exchange);
+                        return context.Symbol.Where(s => s.Code == symbol.Code
+                                                    && s.Exchange == symbol.Exchange).FirstOrDefault();
+                    } else {
+                        var symbolIntegrityService = serviceProvider.GetService<SymbolIntegrityService>();
+                        await symbolIntegrityService.RegisterExchange(symbol.Exchange);
 
                         Symbol newSymbol = searchSymbolData.ToSymbol();
-                        newSymbol.UpdateWithEod(historicalEods.Last());
+                        newSymbol.EodLastUpdate = await symbolIntegrityService.UpdateHistoricalEod(newSymbol);
+                        newSymbol.DividendLastUpdate = await symbolIntegrityService.UpdateDividend(newSymbol);
 
-                        foreach (HistoricalEod eod in historicalEods)
-                        {
-                            eod.Code = symbol.Code;
-                            eod.Exchange = symbol.Exchange;
-                            context.HistoricalEod.Add(eod);
-                        }
-
-                        foreach (Dividend div in dividends)
-                        {
-                            div.Code = symbol.Code;
-                            div.Exchange = symbol.Exchange;
-                            context.Dividend.Add(div);
-                        }
-
-                        newSymbol.DividendLastUpdate = DateTime.Now;
-                        newSymbol.EodLastUpdate = DateTime.Now;
-                        context.Symbol.Add(newSymbol);
-
-                        context.SaveChanges();
+                        var lastEod = await symbolIntegrityService.GetLastEod(newSymbol);
+                        newSymbol.UpdateWithEod(lastEod);
 
                         StatusCode(StatusCodes.Status201Created);
-                        return newSymbol;
-                    }
-                    else
-                    {
-                        return context.Symbol.Where(s => s.Code == symbol.Code && s.Exchange == symbol.Exchange).FirstOrDefault();
+
+                        context.Symbol.Add(newSymbol);
+                        context.SaveChanges();
+
+                        return newSymbol;      
                     }
                 }
             }
