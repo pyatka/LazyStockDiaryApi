@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using LazyStockDiaryApi.Helpers;
 using LazyStockDiaryApi.Models;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,22 @@ namespace LazyStockDiaryApi.Services
 		{
 			_eodhdService = new EodhdService(settings.Value.EodhdApiKey);
             _configuration = configuration;
+        }
+
+        public async Task<HistoricalEodEodhd> GetEodhdChanges(Symbol symbol)
+        {
+            using (var context = new DataContext(_configuration))
+            {
+                var historicalData = await context.HistoricalEod.Where(eod => eod.Code == symbol.Code
+                                                          && eod.Exchange == symbol.Exchange)
+                                           .OrderByDescending(eod => eod.Date)
+                                           .Take(2).ToArrayAsync();
+                HistoricalEodEodhd result = new HistoricalEodEodhd(historicalData[0]);
+                result.PreviousClose = historicalData[1].Close;
+                result.ChangeAbsolute = Math.Round(result.Close.Value - result.PreviousClose.Value, 2);
+                result.ChangePercent = Math.Round((result.ChangeAbsolute.Value / result.PreviousClose.Value) * 100, 2);
+                return result;
+            }
         }
 
         public async Task<HistoricalEod> GetLastEod(Symbol symbol)

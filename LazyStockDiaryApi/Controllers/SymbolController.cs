@@ -65,8 +65,8 @@ namespace LazyStockDiaryApi.Controllers
                         newSymbol.EodLastUpdate = await symbolIntegrityService.UpdateHistoricalEod(newSymbol);
                         newSymbol.DividendLastUpdate = await symbolIntegrityService.UpdateDividend(newSymbol);
 
-                        var lastEod = await symbolIntegrityService.GetLastEod(newSymbol);
-                        newSymbol.UpdateWithEod(lastEod);
+                        var lastChange = await symbolIntegrityService.GetEodhdChanges(newSymbol);
+                        newSymbol.UpdateEod(lastChange);
 
                         StatusCode(StatusCodes.Status201Created);
 

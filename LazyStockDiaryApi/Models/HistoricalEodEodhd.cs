@@ -7,6 +7,19 @@ namespace LazyStockDiaryApi.Models
      */
     public class HistoricalEodEodhd : HistoricalEod
     {
+
+        public HistoricalEodEodhd(HistoricalEod historicalEod)
+        {
+            Code = historicalEod.Code;
+            Exchange = historicalEod.Exchange;
+            Date = historicalEod.Date;
+            Open = historicalEod.Open;
+            Close = historicalEod.Close;
+            High = historicalEod.High;
+            Low = historicalEod.Low;
+            Volume = historicalEod.Volume;
+        }
+
         [JsonProperty(PropertyName = "exchange_short_name")]
         public string Exchange
         {
