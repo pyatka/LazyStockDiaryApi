@@ -19,6 +19,27 @@ namespace LazyStockDiaryApi.Services
             _configuration = configuration;
         }
 
+        public async Task<List<Dividend>?> GetDividends(string code,
+                                                        string exchange,
+                                                        DateTime startDate,
+                                                        DateTime endDate)
+        {
+            using (var context = new DataContext(_configuration))
+            {
+                var symbolExists = context.Dividend.Any(d => d.Code == code && d.Exchange == exchange);
+                if (symbolExists)
+                {
+                    var dividends = await context.Dividend.Where(d => d.Code == code
+                                                                    && d.Exchange == exchange
+                                                                    && d.RecordDate > startDate
+                                                                    && d.RecordDate <= endDate)
+                                                          .ToListAsync();
+                    return dividends;
+                }
+            }
+            return null;
+        }
+
         public async Task<HistoricalEodEodhd> GetEodhdChanges(Symbol symbol)
         {
             using (var context = new DataContext(_configuration))

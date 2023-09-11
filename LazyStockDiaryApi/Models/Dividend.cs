@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace LazyStockDiaryApi.Models
@@ -8,6 +9,7 @@ namespace LazyStockDiaryApi.Models
     [Index(nameof(Code), nameof(Exchange), nameof(RecordDate))]
     public class Dividend
     {
+        [JsonIgnore]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
