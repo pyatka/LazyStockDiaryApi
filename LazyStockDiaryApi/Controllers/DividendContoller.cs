@@ -13,7 +13,7 @@ namespace LazyStockDiaryApi.Controllers
     public class DividendContoller : ControllerBase
 	{
         [HttpGet]
-        public async Task<List<Dividend>?> GetDividends(IServiceProvider serviceProvider,
+        public async Task<List<Dividend>> GetDividends(IServiceProvider serviceProvider,
                                                         [FromQuery]string code,
                                                         [FromQuery] string exchange,
                                                         [FromQuery] DateTime startDate,

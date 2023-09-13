@@ -7,6 +7,10 @@ namespace LazyStockDiaryApi.Models
      */
     public class HistoricalEodEodhd : HistoricalEod
     {
+        public HistoricalEodEodhd()
+        {
+
+        }
 
         public HistoricalEodEodhd(HistoricalEod historicalEod)
         {

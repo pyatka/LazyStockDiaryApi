@@ -19,7 +19,7 @@ namespace LazyStockDiaryApi.Services
             _configuration = configuration;
         }
 
-        public async Task<List<Dividend>?> GetDividends(string code,
+        public async Task<List<Dividend>> GetDividends(string code,
                                                         string exchange,
                                                         DateTime startDate,
                                                         DateTime endDate)
@@ -35,9 +35,11 @@ namespace LazyStockDiaryApi.Services
                                                                     && d.RecordDate <= endDate)
                                                           .ToListAsync();
                     return dividends;
+                } else
+                {
+                    return new List<Dividend>();
                 }
             }
-            return null;
         }
 
         public async Task<HistoricalEodEodhd> GetEodhdChanges(Symbol symbol)
